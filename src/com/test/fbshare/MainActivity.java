@@ -11,14 +11,21 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.Toast;
 
+import com.facebook.HttpMethod;
+import com.facebook.Request;
+import com.facebook.Response;
 import com.facebook.Session;
+import com.facebook.Session.NewPermissionsRequest;
 import com.facebook.UiLifecycleHelper;
 import com.facebook.widget.FacebookDialog;
 import com.facebook.widget.FacebookDialog.PendingCall;
@@ -109,14 +116,17 @@ public class MainActivity extends Activity implements OnClickListener {
 			@Override
 			public void done(ParseUser user, ParseException e) {
 				if (user == null) {
-					// Log.e("FAILURE", "User denied for facebook login" +
-					// e.getMessage());
-					// e.printStackTrace();
+					 Log.e("FAILURE", "User denied for facebook login" +
+					 e.getMessage());
+					 e.printStackTrace();
 
 				} else if (user.isNew()) {
 					// call facebook parse session here and get me object data
 					// and put to parse user
 					Log.e("SUCEESS", "New Facebook logged in user");
+					NewPermissionsRequest nRequest=new NewPermissionsRequest(MainActivity.this,"publish_actions");
+					ParseFacebookUtils.getSession().requestNewPublishPermissions(nRequest);
+					ParseFacebookUtils.saveLatestSessionData(user);
 
 				} else {
 					// 1.call facebook parse session here and get me object data
@@ -134,18 +144,39 @@ public class MainActivity extends Activity implements OnClickListener {
 	protected void shareToFb() {
 		session = ParseFacebookUtils.getSession();
 		if (session != null) {
-			Log.e(">>>>>", "session not null");
+			Log.e(">>>>>", "session not null"+session.isOpened());
 			if (session.isOpened()) {
 				Log.e(">>>>>", "session is opened");
-				FacebookDialog shareDialog = new FacebookDialog.ShareDialogBuilder(this).setName("Title:Nexus9 price")
+				/*FacebookDialog shareDialog = new FacebookDialog.ShareDialogBuilder(this).setName("Title:Nexus9 price")
 						.setDescription("Nexus 9 price would be starting from $399")
 						.setPicture("http://i58.tinypic.com/2iqkg04.png")
 						.setLink("https://www.androidauthority.com/nexus-9-specs-features-price-availability-538604/")
 						.setApplicationName("Devotify").build();
-				uiHelper.trackPendingDialogCall(shareDialog.present());
+				uiHelper.trackPendingDialogCall(shareDialog.present());*/
+				postPic(session);
 			}
 		}
 
+	}
+	private void postPic(Session session)
+	{
+		Bundle params = new Bundle();
+		params.putString("url","http://i58.tinypic.com/2iqkg04.png");
+		params.putString("message","this is a test photo for posting an image and text");
+		if(session==null)
+			Log.e("response","session null");
+		else
+			Log.e("ac",session.getAccessToken().toString());
+		Request request=new Request(Session.getActiveSession(),"/me/photos",params,HttpMethod.POST,new Request.Callback() {
+			
+			@Override
+			public void onCompleted(Response response) {
+				Log.e("response",response.toString());
+				Toast.makeText(getApplicationContext(),response.toString(),Toast.LENGTH_LONG).show();
+				
+			}
+		});
+		request.executeAsync();
 	}
 
 	public void onClick(View v) {

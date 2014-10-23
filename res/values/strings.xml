@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">FBshare</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="fb_app_id">1711453775745803</string>
+
+</resources>
